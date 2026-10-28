@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About — ExactKB</title>
+  <meta name="description" content="About ExactKB, a free private tool that compresses images and PDFs to the exact KB or MB size you need." />
+  <link rel="canonical" href="https://piyush-0907.github.io/exactkb/about.html" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    if (typeof tailwind !== 'undefined') {
+      tailwind.config = { darkMode: 'media', theme: { extend: { fontFamily: { sans: ['Inter','system-ui','sans-serif'] },
+        colors: { indigo: {50:'#eefbfd',100:'#d2f4f9',400:'#2bbcd6',600:'#0b7a9b',700:'#0a6683'},
+                  slate: {50:'#f5f8fc',200:'#dae2ee',400:'#8b99b3',500:'#64738f',600:'#4a5873',800:'#232c42',900:'#151b2e',950:'#0a0e1c'} } } } };
+    }
+  </script>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-sans antialiased min-h-screen flex flex-col">
+  <header class="border-b border-slate-200/70 dark:border-slate-800">
+    <div class="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
+      <a href="./" class="font-extrabold text-lg tracking-tight">Exact<span class="text-indigo-600 dark:text-indigo-400">KB</span></a>
+      <a href="./" class="text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">← Back to tool</a>
+    </div>
+  </header>
+  <main class="flex-1 max-w-3xl w-full mx-auto px-4 py-10 space-y-5 text-sm sm:text-base leading-relaxed text-slate-700 dark:text-slate-300">
+    <h1 class="text-3xl font-extrabold text-slate-900 dark:text-white">About ExactKB</h1>
+    <p>ExactKB is a free tool that shrinks images and PDFs to the exact size you need, in KB or MB. It was built for the common situation where an exam form, job portal or application site rejects a file because it is a few KB too big.</p>
+
+    <h2 class="text-xl font-extrabold text-slate-900 dark:text-white pt-3">What it does</h2>
+    <p>You upload a JPG, PNG, WEBP or PDF, type your target size, and download a compressed copy that fits. There is no sign-up and no watermark.</p>
+
+    <h2 class="text-xl font-extrabold text-slate-900 dark:text-white pt-3">Private by design</h2>
+    <p>Compression runs entirely in your browser. Your files are never sent to a server, so your documents and photos stay yours. Read the full <a class="text-indigo-600 dark:text-indigo-400 underline" href="privacy.html">Privacy Policy</a>.</p>
+
+    <h2 class="text-xl font-extrabold text-slate-900 dark:text-white pt-3">Who made it</h2>
+    <p>ExactKB is an independent project, built and maintained by a small team that cares about simple, private tools.</p>
+
+    <h2 class="text-xl font-extrabold text-slate-900 dark:text-white pt-3">Contact</h2>
+    <p>Feedback, bug reports or ideas are welcome: <a class="text-indigo-600 dark:text-indigo-400 underline" href="mailto:exactKB@gmail.com">exactKB@gmail.com</a>.</p>
+  </main>
+  <footer class="border-t border-slate-200/70 dark:border-slate-800 py-6 text-center text-xs text-slate-400">
+    <a href="./" class="hover:underline">Home</a> • <a href="about.html" class="hover:underline">About</a> • <a href="privacy.html" class="hover:underline">Privacy Policy</a>
+  </footer>
+</body>
+</html>
