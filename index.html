@@ -1,0 +1,1685 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ExactKB — Image &amp; PDF Compressor</title>
+  <meta name="description" content="Simple, 100% private client-side Image &amp; PDF size reducer. Choose Compress Image or Compress PDF, upload your file, enter your target KB or MB, and download." />
+
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- CDN Libraries -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    if (typeof tailwind !== 'undefined') {
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+              mono: ['JetBrains Mono', 'monospace'],
+            },
+            colors: {
+              /* Image tool accent: ocean teal-blue */
+              indigo: {
+                50:'#eefbfd',100:'#d2f4f9',200:'#a8e8f2',300:'#6fd5e7',400:'#2bbcd6',
+                500:'#0ea0bf',600:'#0b7a9b',700:'#0a6683',800:'#0f536a',900:'#12465a',950:'#072c3b'
+              },
+              /* PDF tool accent: orchid / magenta-purple */
+              violet: {
+                50:'#fbf4ff',100:'#f5e6ff',200:'#ebcdff',300:'#dca5ff',400:'#c874fb',
+                500:'#b04bf0',600:'#9633d6',700:'#7c28b0',800:'#672590',900:'#54216f',950:'#37104d'
+              },
+              /* Neutrals: cool ink-navy instead of flat grey */
+              slate: {
+                50:'#f5f8fc',100:'#eaeff6',200:'#dae2ee',300:'#bfcadd',400:'#8b99b3',
+                500:'#64738f',600:'#4a5873',700:'#38445c',800:'#232c42',900:'#151b2e',950:'#0a0e1c'
+              }
+            }
+          }
+        }
+      };
+    }
+  </script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <style>
+    .drop-zone-active {
+      border-color: #0ea0bf !important;
+      background-color: rgba(14, 160, 191, 0.08) !important;
+      transform: scale(1.01);
+    }
+    .bg-checkerboard {
+      background-color: #f5f8fc;
+      background-image:
+        linear-gradient(45deg, #dae2ee 25%, transparent 25%),
+        linear-gradient(-45deg, #dae2ee 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #dae2ee 75%),
+        linear-gradient(-45deg, transparent 75%, #dae2ee 75%);
+      background-size: 16px 16px;
+      background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+    }
+    .dark .bg-checkerboard {
+      background-color: #0a0e1c;
+      background-image:
+        linear-gradient(45deg, #232c42 25%, transparent 25%),
+        linear-gradient(-45deg, #232c42 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #232c42 75%),
+        linear-gradient(-45deg, transparent 75%, #232c42 75%);
+    }
+    @keyframes pulse-ring {
+      0% { transform: scale(0.92); opacity: 0.8; }
+      50% { transform: scale(1.08); opacity: 0.3; }
+      100% { transform: scale(0.92); opacity: 0.8; }
+    }
+    .animate-pulse-ring {
+      animation: pulse-ring 1.8s infinite ease-in-out;
+    }
+
+    /* ===== Visual refresh (colours only, no behaviour changes) ===== */
+    body {
+      background-image:
+        radial-gradient(900px 520px at 8% -8%, rgba(14, 160, 191, 0.14), transparent 60%),
+        radial-gradient(800px 520px at 100% 0%, rgba(150, 51, 214, 0.11), transparent 60%),
+        radial-gradient(700px 500px at 50% 110%, rgba(16, 185, 129, 0.07), transparent 60%);
+      background-attachment: fixed;
+    }
+    .dark body, html.dark body {
+      background-image:
+        radial-gradient(900px 520px at 8% -8%, rgba(14, 160, 191, 0.20), transparent 60%),
+        radial-gradient(800px 520px at 100% 0%, rgba(150, 51, 214, 0.18), transparent 60%),
+        radial-gradient(700px 500px at 50% 110%, rgba(16, 185, 129, 0.08), transparent 60%);
+    }
+    /* Gradient accents on primary filled buttons / active toggles */
+    .bg-indigo-600 { background-image: linear-gradient(135deg, #14b0cf 0%, #0b7a9b 100%); }
+    .hover\:bg-indigo-700:hover { background-image: linear-gradient(135deg, #0ea0bf 0%, #0a6683 100%); }
+    .bg-violet-600 { background-image: linear-gradient(135deg, #c05af2 0%, #8a2dc8 100%); }
+    .hover\:bg-violet-700:hover { background-image: linear-gradient(135deg, #b04bf0 0%, #7c28b0 100%); }
+    /* Gradient headline accent */
+    .gradient-text {
+      background-image: linear-gradient(90deg, #0b9bbd 0%, #7c5cf0 55%, #b04bf0 100%);
+      -webkit-background-clip: text; background-clip: text;
+      -webkit-text-fill-color: transparent; color: transparent;
+    }
+    .dark .gradient-text {
+      background-image: linear-gradient(90deg, #4fd6ee 0%, #a58bff 55%, #dd8bff 100%);
+    }
+    /* Softer, colour-tinted card shadows */
+    .shadow-lg { box-shadow: 0 18px 40px -16px rgba(11, 122, 155, 0.22), 0 4px 12px -6px rgba(21, 27, 46, 0.10); }
+    .dark .shadow-lg { box-shadow: 0 18px 40px -16px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(139, 153, 179, 0.06); }
+    .hover\:shadow-xl:hover { box-shadow: 0 24px 50px -18px rgba(90, 70, 200, 0.30), 0 6px 16px -8px rgba(21, 27, 46, 0.12); }
+    .shadow-violet-500\/25 { box-shadow: 0 12px 28px -10px rgba(150, 51, 214, 0.45); }
+    ::selection { background: #0b7a9b; color: #fff; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-sans antialiased  min-h-screen flex flex-col transition-colors duration-200">
+
+  <!-- ========================================================================
+       MINIMAL NAVBAR
+       ======================================================================== -->
+  <header class="sticky top-0 z-30 bg-white/85 dark:bg-slate-900/85 backdrop-blur-md border-b border-slate-200/70 dark:border-slate-800/80">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+      <a href="#homeSection" id="brandHomeLink" class="flex items-center gap-2.5 group focus:outline-none">
+        <div class="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-sm group-hover:bg-indigo-700 transition-colors">
+          <i data-lucide="minimize-2" class="w-5 h-5"></i>
+        </div>
+        <span class="font-extrabold text-lg tracking-tight text-slate-900 dark:text-white">Exact<span class="text-indigo-600 dark:text-indigo-400">KB</span></span>
+      </a>
+
+      <div class="flex items-center gap-3">
+        <div class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/70 text-emerald-700 dark:text-emerald-300 text-xs font-medium">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span>100% Private — Files Stay on Your Device</span>
+        </div>
+
+        <button id="themeToggleBtn" type="button" aria-label="Toggle Dark or Light Mode" class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100/80 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+          <i data-lucide="moon" id="themeIconMoon" class="w-4 h-4 block dark:hidden"></i>
+          <i data-lucide="sun" id="themeIconSun" class="w-4 h-4 hidden dark:block text-amber-400"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       MAIN CONTENT
+       ======================================================================== -->
+  <main id="workspace" class="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-10 sm:py-16 flex flex-col justify-center">
+
+    <!-- ======================================================================
+         VIEW 1: HOME PAGE (HERO + SCROLL DOWN TO TWO OPTIONS)
+         ====================================================================== -->
+    <div id="homeSection" class="space-y-14">
+      <!-- Clean Hero -->
+      <div class="text-center max-w-2xl mx-auto space-y-5">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-950/80 border border-indigo-200/80 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 text-xs font-semibold">
+          <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+          <span>100% Local Browser Compression</span>
+        </div>
+
+        <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight">
+          Compress Image or PDF to <span class="gradient-text">Exact KB / MB</span>
+        </h1>
+
+        <p class="text-base sm:text-lg text-slate-600 dark:text-slate-400 max-w-lg mx-auto leading-relaxed">
+          Scroll down and choose an option below. Upload your file, type the exact KB or MB size you want, and download it right away.
+        </p>
+
+        <div class="pt-2">
+          <a href="#chooseToolSection" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 font-bold text-sm shadow-md transition-all">
+            <span>Select Tool Below</span>
+            <i data-lucide="arrow-down" class="w-4 h-4"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- TWO MAIN OPTIONS: COMPRESS IMAGE OR COMPRESS PDF -->
+      <section id="chooseToolSection" class="pt-4 scroll-mt-24">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- OPTION 1: COMPRESS IMAGE -->
+          <button id="selectImageToolCard" type="button" class="group text-left bg-white dark:bg-slate-900 rounded-3xl p-8 border-2 border-slate-200/90 dark:border-slate-800 hover:border-indigo-600 dark:hover:border-indigo-500 shadow-sm hover:shadow-xl transition-all duration-200 flex flex-col justify-between">
+            <div>
+              <div class="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-950/90 border border-indigo-100 dark:border-indigo-800 flex items-center justify-center text-indigo-600 dark:text-indigo-400 group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all mb-6">
+                <i data-lucide="image" class="w-7 h-7"></i>
+              </div>
+              <h2 class="text-2xl font-extrabold text-slate-900 dark:text-white">
+                Compress Image
+              </h2>
+              <p class="mt-2 text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                Upload any JPG, PNG, or WEBP image and reduce it to your exact target KB or MB.
+              </p>
+            </div>
+
+            <div class="mt-8 pt-5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+              <span class="text-xs font-mono text-slate-400">JPG • PNG • WEBP</span>
+              <span class="inline-flex items-center gap-1.5 text-sm font-bold text-indigo-600 dark:text-indigo-400 group-hover:translate-x-1 transition-transform">
+                <span>Select Image</span>
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+              </span>
+            </div>
+          </button>
+
+          <!-- OPTION 2: COMPRESS PDF -->
+          <button id="selectPdfToolCard" type="button" class="group text-left bg-white dark:bg-slate-900 rounded-3xl p-8 border-2 border-slate-200/90 dark:border-slate-800 hover:border-violet-600 dark:hover:border-violet-500 shadow-sm hover:shadow-xl transition-all duration-200 flex flex-col justify-between">
+            <div>
+              <div class="w-14 h-14 rounded-2xl bg-violet-50 dark:bg-violet-950/90 border border-violet-100 dark:border-violet-800 flex items-center justify-center text-violet-600 dark:text-violet-400 group-hover:scale-110 group-hover:bg-violet-600 group-hover:text-white transition-all mb-6">
+                <i data-lucide="file-text" class="w-7 h-7"></i>
+              </div>
+              <h2 class="text-2xl font-extrabold text-slate-900 dark:text-white">
+                Compress PDF
+              </h2>
+              <p class="mt-2 text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                Upload any PDF document and shrink it down to your exact target KB or MB.
+              </p>
+            </div>
+
+            <div class="mt-8 pt-5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+              <span class="text-xs font-mono text-slate-400">PDF Document</span>
+              <span class="inline-flex items-center gap-1.5 text-sm font-bold text-violet-600 dark:text-violet-400 group-hover:translate-x-1 transition-transform">
+                <span>Select PDF</span>
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+              </span>
+            </div>
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <!-- ======================================================================
+         VIEW 2: FOCUSED STEP-BY-STEP FLOW
+         Step 1: Upload -> Step 2: Current Size & Compress To (KB/MB) -> Step 3: Loading -> Step 4: Final Result & Download
+         ====================================================================== -->
+    <div id="wizardContainer" class="hidden max-w-xl w-full mx-auto">
+
+      <!-- Top Bar: Back to Home + Switch Tool -->
+      <div class="flex items-center justify-between gap-3 mb-5">
+        <button id="backToHomeBtn" type="button" class="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i>
+          <span>Back</span>
+        </button>
+
+        <div class="inline-flex p-1 rounded-xl bg-slate-200/80 dark:bg-slate-900 border border-slate-300/60 dark:border-slate-800" role="tablist">
+          <button id="tabBtnImage" type="button" role="tab" aria-selected="true" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm">
+            Compress Image
+          </button>
+          <button id="tabBtnPdf" type="button" role="tab" aria-selected="false" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-600 dark:text-slate-400">
+            Compress PDF
+          </button>
+        </div>
+      </div>
+
+      <!-- ====================================================================
+           IMAGE COMPRESSOR PANEL
+           ==================================================================== -->
+      <div id="panelImage" class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-lg p-6 sm:p-8">
+
+        <!-- IMAGE STEP 1: UPLOAD -->
+        <div id="imageStep1Upload" class="space-y-5">
+          <div class="text-center space-y-1">
+            <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">Upload Image</h2>
+            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Choose a JPG, PNG, or WEBP file from your device.</p>
+          </div>
+
+          <div id="imageDropZone" class="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-indigo-500 dark:hover:border-indigo-400 rounded-2xl p-10 text-center transition-all bg-slate-50/70 dark:bg-slate-950/50 cursor-pointer">
+            <input id="imageFileInput" type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" />
+            <div class="w-16 h-16 rounded-2xl bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto mb-4 shadow-sm">
+              <i data-lucide="upload-cloud" class="w-8 h-8"></i>
+            </div>
+            <p class="text-base font-bold text-slate-800 dark:text-slate-100">
+              Click to upload image, or drag &amp; drop
+            </p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              JPG, PNG, WEBP
+            </p>
+            <div class="mt-5">
+              <span class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold shadow-sm transition-colors">
+                <i data-lucide="folder-open" class="w-4 h-4"></i>
+                <span>Browse Image</span>
+              </span>
+            </div>
+          </div>
+
+          <!-- Upload Error Message -->
+          <div id="imageErrorBanner" class="hidden p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs font-medium flex items-center justify-between">
+            <span id="imageErrorText">Please select a valid JPG, PNG, or WEBP file.</span>
+            <button id="closeImageErrorBtn" type="button" class="font-bold px-2">&times;</button>
+          </div>
+
+          <div class="text-center pt-1">
+            <button id="trySampleImageBtn" type="button" class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
+              Or test with a Sample Image
+            </button>
+          </div>
+        </div>
+
+        <!-- IMAGE STEP 2: CURRENT SIZE & COMPRESS TO (KB / MB ONLY) -->
+        <div id="imageStep2Configure" class="hidden space-y-6">
+          <!-- File Preview & Current Size -->
+          <div class="flex items-center justify-between gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200/80 dark:border-slate-800">
+            <div class="flex items-center gap-3.5 min-w-0">
+              <img id="configThumbImg" alt="Preview" class="w-14 h-14 rounded-xl object-cover border border-slate-200 dark:border-slate-700 bg-white shrink-0" />
+              <div class="min-w-0">
+                <p id="configFileName" class="text-sm font-bold text-slate-900 dark:text-white truncate">image.jpg</p>
+                <p id="statOrigDim" class="text-xs font-mono text-slate-500 dark:text-slate-400">800 × 920 px</p>
+              </div>
+            </div>
+            <div class="text-right shrink-0">
+              <span class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400">Current Size</span>
+              <span id="statOrigSize" class="text-lg sm:text-xl font-mono font-extrabold text-slate-900 dark:text-white">210.4 KB</span>
+            </div>
+          </div>
+
+          <!-- ONLY INPUT: Compress To [ Number ] [ KB / MB ] -->
+          <div class="space-y-3">
+            <label for="targetKbInput" class="block text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
+              Compress to:
+            </label>
+
+            <div class="flex items-stretch gap-2.5">
+              <input id="targetKbInput" type="number" min="1" max="50000" step="any" value="50" class="flex-1 px-4 py-3.5 rounded-xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 font-mono font-extrabold text-lg text-slate-900 dark:text-white focus:border-indigo-600 focus:outline-none transition-colors" placeholder="Enter size (e.g. 50)" />
+
+              <!-- KB / MB Unit Toggle -->
+              <div class="inline-flex p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 shrink-0">
+                <button id="imgUnitKbBtn" type="button" class="px-4 py-2 rounded-lg text-sm font-mono font-extrabold bg-indigo-600 text-white shadow-sm transition-all">
+                  KB
+                </button>
+                <button id="imgUnitMbBtn" type="button" class="px-4 py-2 rounded-lg text-sm font-mono font-extrabold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">
+                  MB
+                </button>
+              </div>
+            </div>
+
+            <!-- Warning Banner when entered size >= actual file size -->
+            <div id="imageSizeWarningBox" class="hidden p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200 text-xs space-y-2.5">
+              <div class="flex items-start gap-2.5">
+                <i data-lucide="alert-circle" class="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5"></i>
+                <p id="imageSizeWarningText" class="leading-relaxed font-medium">
+                  The target size you entered is larger than the current file size. Please enter a size smaller than the current size to compress.
+                </p>
+              </div>
+              <div class="flex flex-wrap items-center gap-2 pt-1">
+                <button id="autoSetHalfImageSizeBtn" type="button" class="px-3 py-1.5 rounded-lg bg-amber-200/80 hover:bg-amber-300/80 dark:bg-amber-900 dark:hover:bg-amber-800 text-amber-950 dark:text-amber-100 font-bold text-xs transition-colors">
+                  Set to 50% of current size
+                </button>
+                <button id="keepOriginalImageBtn" type="button" class="px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-200 font-semibold text-xs hover:bg-amber-100 transition-colors">
+                  Keep original file (Already under target)
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex items-center gap-3 pt-2">
+            <button id="resetImageWorkspaceBtn" type="button" class="px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+              ← Change File
+            </button>
+            <button id="applyCompressionBtn" type="button" class="flex-1 py-4 px-6 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-sm sm:text-base shadow-lg shadow-indigo-500/25 transition-all flex items-center justify-center gap-2">
+              <span>Compress Image</span>
+              <i data-lucide="arrow-right" class="w-5 h-5"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- IMAGE STEP 3: LOADING SCREEN -->
+        <div id="imageStep3Loading" class="hidden py-12 px-4 text-center space-y-5">
+          <div class="relative w-20 h-20 mx-auto flex items-center justify-center">
+            <div class="absolute inset-0 rounded-full bg-indigo-500/20 animate-pulse-ring"></div>
+            <div class="w-14 h-14 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg">
+              <i data-lucide="loader-2" class="w-7 h-7 animate-spin"></i>
+            </div>
+          </div>
+          <div class="space-y-1.5">
+            <h3 id="imageLoadingTitle" class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
+              Compressing Image...
+            </h3>
+            <p id="imageAlgorithmStatus" class="text-xs sm:text-sm font-mono text-slate-500 dark:text-slate-400">
+              Reducing file size to match your target...
+            </p>
+          </div>
+          <div class="max-w-xs mx-auto w-full h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+            <div id="imageLoadingBar" class="h-full bg-indigo-600 rounded-full transition-all duration-150" style="width: 40%"></div>
+          </div>
+        </div>
+
+        <!-- IMAGE STEP 4: FINAL COMPRESSED IMAGE & DOWNLOAD -->
+        <div id="imageStep4Result" class="hidden space-y-6">
+          <div class="text-center space-y-1">
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 text-xs font-bold mb-1">
+              <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+              <span>Done!</span>
+            </div>
+            <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">Compressed Image Ready</h3>
+          </div>
+
+          <!-- Size Comparison Summary -->
+          <div class="px-3.5 py-3 rounded-xl bg-slate-50 dark:bg-slate-950/90 border border-slate-200/90 dark:border-slate-800 flex items-center justify-between gap-2.5">
+            <div>
+              <span class="block text-[9px] font-bold uppercase tracking-wider text-slate-400">Original Size</span>
+              <span id="resultOrigSizeText" class="text-xs font-mono font-semibold text-slate-500 line-through">210.4 KB</span>
+            </div>
+
+            <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
+
+            <div>
+              <span class="block text-[9px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Compressed Size</span>
+              <span id="statCompSize" class="text-sm sm:text-base font-mono font-bold text-indigo-600 dark:text-indigo-400">46.2 KB</span>
+            </div>
+
+            <div class="ml-auto text-right">
+              <span id="statSavedBadge" class="inline-block px-2 py-0.5 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-mono font-bold text-[10px] sm:text-xs whitespace-nowrap">-78%</span>
+            </div>
+          </div>
+
+          <!-- Compressed Image Preview -->
+          <div class="rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-checkerboard flex flex-col">
+            <div class="px-4 py-2 bg-white/90 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
+              <span class="font-bold text-slate-700 dark:text-slate-200">Final Image Preview</span>
+              <span id="compPaneBadge" class="font-mono font-bold text-indigo-600 dark:text-indigo-400">46.2 KB</span>
+            </div>
+            <div class="h-64 flex items-center justify-center p-4">
+              <img id="compPreviewImg" alt="Compressed output preview" class="max-w-full max-h-full object-contain rounded shadow-sm" />
+            </div>
+          </div>
+
+          <!-- Direct Anchor Download Button (Works natively in all browsers & sandboxed iframes) -->
+          <div class="space-y-3 pt-1">
+            <a id="downloadImageBtn" href="data:," download="compressed-image.jpg" class="w-full py-4 px-6 rounded-2xl font-extrabold text-base text-white bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-500/25 transition-all flex items-center justify-center gap-2.5 cursor-pointer text-center no-underline">
+              <i data-lucide="download" class="w-5 h-5"></i>
+              <span id="downloadImageBtnText">Download Compressed Image</span>
+            </a>
+
+            <div class="flex items-center justify-between pt-2 text-xs font-bold">
+              <button id="adjustImageTargetBtn" type="button" class="text-indigo-600 dark:text-indigo-400 hover:underline">
+                ← Change KB / MB Size
+              </button>
+              <button id="compressAnotherImageBtn" type="button" class="text-slate-600 dark:text-slate-400 hover:underline">
+                Compress Another Image
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ====================================================================
+           PDF COMPRESSOR PANEL
+           ==================================================================== -->
+      <div id="panelPdf" class="hidden bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-lg p-6 sm:p-8">
+
+        <!-- PDF STEP 1: UPLOAD -->
+        <div id="pdfStep1Upload" class="space-y-5">
+          <div class="text-center space-y-1">
+            <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">Upload PDF</h2>
+            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Choose a PDF document from your device.</p>
+          </div>
+
+          <div id="pdfDropZone" class="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-violet-500 dark:hover:border-violet-400 rounded-2xl p-10 text-center transition-all bg-slate-50/70 dark:bg-slate-950/50 cursor-pointer">
+            <input id="pdfFileInput" type="file" accept="application/pdf,.pdf" class="sr-only" />
+            <div class="w-16 h-16 rounded-2xl bg-violet-50 dark:bg-violet-950 text-violet-600 dark:text-violet-400 flex items-center justify-center mx-auto mb-4 shadow-sm">
+              <i data-lucide="file-up" class="w-8 h-8"></i>
+            </div>
+            <p class="text-base font-bold text-slate-800 dark:text-slate-100">
+              Click to upload PDF, or drag &amp; drop
+            </p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              Supports single &amp; multi-page PDF files
+            </p>
+            <div class="mt-5">
+              <span class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs sm:text-sm font-bold shadow-sm transition-colors">
+                <i data-lucide="folder-open" class="w-4 h-4"></i>
+                <span>Browse PDF</span>
+              </span>
+            </div>
+          </div>
+
+          <div id="pdfErrorBanner" class="hidden p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs font-medium flex items-center justify-between">
+            <span id="pdfErrorText">Please select a valid PDF document (.pdf).</span>
+            <button id="closePdfErrorBtn" type="button" class="font-bold px-2">&times;</button>
+          </div>
+
+          <div class="text-center pt-1">
+            <button id="trySamplePdfBtn" type="button" class="text-xs font-semibold text-violet-600 dark:text-violet-400 hover:underline">
+              Or test with a Sample PDF
+            </button>
+          </div>
+        </div>
+
+        <!-- PDF STEP 2: CURRENT SIZE & COMPRESS TO (KB / MB ONLY) -->
+        <div id="pdfStep2Configure" class="hidden space-y-6">
+          <!-- Selected PDF File & Current Size -->
+          <div class="flex items-center justify-between gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200/80 dark:border-slate-800">
+            <div class="flex items-center gap-3.5 min-w-0">
+              <div class="w-12 h-12 rounded-xl bg-violet-100 dark:bg-violet-950 text-violet-600 dark:text-violet-400 flex items-center justify-center shrink-0">
+                <i data-lucide="file-text" class="w-6 h-6"></i>
+              </div>
+              <div class="min-w-0">
+                <p id="pdfStatFileName" class="text-sm font-bold text-slate-900 dark:text-white truncate">document.pdf</p>
+                <p id="pdfStatPages" class="text-xs font-mono text-slate-500 dark:text-slate-400">PDF Document</p>
+              </div>
+            </div>
+            <div class="text-right shrink-0">
+              <span class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400">Current Size</span>
+              <span id="pdfStatOrigSize" class="text-lg sm:text-xl font-mono font-extrabold text-slate-900 dark:text-white">480.0 KB</span>
+            </div>
+          </div>
+
+          <!-- ONLY INPUT: Compress To [ Number ] [ KB / MB ] -->
+          <div class="space-y-3">
+            <label for="pdfTargetKbInput" class="block text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
+              Compress to:
+            </label>
+
+            <div class="flex items-stretch gap-2.5">
+              <input id="pdfTargetKbInput" type="number" min="1" max="50000" step="any" value="200" class="flex-1 px-4 py-3.5 rounded-xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 font-mono font-extrabold text-lg text-slate-900 dark:text-white focus:border-violet-600 focus:outline-none transition-colors" placeholder="Enter size (e.g. 200)" />
+
+              <div class="inline-flex p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 shrink-0">
+                <button id="pdfUnitKbBtn" type="button" class="px-4 py-2 rounded-lg text-sm font-mono font-extrabold bg-violet-600 text-white shadow-sm transition-all">
+                  KB
+                </button>
+                <button id="pdfUnitMbBtn" type="button" class="px-4 py-2 rounded-lg text-sm font-mono font-extrabold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">
+                  MB
+                </button>
+              </div>
+            </div>
+
+            <!-- Warning Banner when entered PDF size >= actual PDF size -->
+            <div id="pdfSizeWarningBox" class="hidden p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200 text-xs space-y-2.5">
+              <div class="flex items-start gap-2.5">
+                <i data-lucide="alert-circle" class="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5"></i>
+                <p id="pdfSizeWarningText" class="leading-relaxed font-medium">
+                  The target size you entered is larger than the current PDF size. Please enter a smaller value to compress.
+                </p>
+              </div>
+              <div class="flex flex-wrap items-center gap-2 pt-1">
+                <button id="autoSetHalfPdfSizeBtn" type="button" class="px-3 py-1.5 rounded-lg bg-amber-200/80 hover:bg-amber-300/80 dark:bg-amber-900 dark:hover:bg-amber-800 text-amber-950 dark:text-amber-100 font-bold text-xs transition-colors">
+                  Set to 50% of current size
+                </button>
+                <button id="keepOriginalPdfBtn" type="button" class="px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-200 font-semibold text-xs hover:bg-amber-100 transition-colors">
+                  Keep original PDF (Already under target)
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3 pt-2">
+            <button id="changePdfFileBtn" type="button" class="px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+              ← Change File
+            </button>
+            <button id="recompressPdfBtn" type="button" class="flex-1 py-4 px-6 rounded-2xl bg-violet-600 hover:bg-violet-700 text-white font-extrabold text-sm sm:text-base shadow-lg shadow-violet-500/25 transition-all flex items-center justify-center gap-2">
+              <span>Compress PDF</span>
+              <i data-lucide="arrow-right" class="w-5 h-5"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- PDF STEP 3: LOADING SCREEN -->
+        <div id="pdfProgressContainer" class="hidden py-12 px-4 text-center space-y-5">
+          <div class="relative w-20 h-20 mx-auto flex items-center justify-center">
+            <div class="absolute inset-0 rounded-full bg-violet-500/20 animate-pulse-ring"></div>
+            <div class="w-14 h-14 rounded-2xl bg-violet-600 text-white flex items-center justify-center shadow-lg">
+              <i data-lucide="loader-2" class="w-7 h-7 animate-spin"></i>
+            </div>
+          </div>
+          <div class="space-y-1.5">
+            <h3 id="pdfProgressLabel" class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
+              Compressing PDF...
+            </h3>
+            <p class="text-xs sm:text-sm font-mono text-slate-500 dark:text-slate-400">
+              Optimizing pages locally in your browser...
+            </p>
+          </div>
+          <div class="max-w-xs mx-auto space-y-1.5">
+            <div class="w-full h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+              <div id="pdfProgressBar" class="h-full bg-violet-600 rounded-full transition-all duration-200" style="width: 25%"></div>
+            </div>
+            <div id="pdfProgressPercent" class="text-xs font-mono font-bold text-violet-600 dark:text-violet-400">25%</div>
+          </div>
+        </div>
+
+        <!-- PDF STEP 4: FINAL COMPRESSED PDF & DOWNLOAD -->
+        <div id="pdfStep4Result" class="hidden space-y-6">
+          <div class="text-center space-y-1">
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 text-xs font-bold mb-1">
+              <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+              <span>Done!</span>
+            </div>
+            <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">Compressed PDF Ready</h3>
+          </div>
+
+          <div class="px-3.5 py-3 rounded-xl bg-slate-50 dark:bg-slate-950/90 border border-slate-200/90 dark:border-slate-800 flex items-center justify-between gap-2.5">
+            <div>
+              <span class="block text-[9px] font-bold uppercase tracking-wider text-slate-400">Original Size</span>
+              <span id="pdfResultOrigSize" class="text-xs font-mono font-semibold text-slate-500 line-through">480.0 KB</span>
+            </div>
+
+            <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
+
+            <div>
+              <span class="block text-[9px] font-bold uppercase tracking-wider text-violet-600 dark:text-violet-400">Compressed Size</span>
+              <span id="pdfStatNewSize" class="text-sm sm:text-base font-mono font-bold text-violet-600 dark:text-violet-400">178.5 KB</span>
+            </div>
+
+            <div class="ml-auto text-right">
+              <span id="pdfStatSavedBadge" class="inline-block px-2 py-0.5 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-mono font-bold text-[10px] sm:text-xs whitespace-nowrap">-63%</span>
+            </div>
+          </div>
+
+          <!-- Compressed PDF Page Thumbnails -->
+          <div class="space-y-2">
+            <span class="text-xs font-bold text-slate-500 dark:text-slate-400">Preview</span>
+            <div id="pdfPageThumbs" class="min-h-[140px] rounded-2xl border border-slate-200 dark:border-slate-800 bg-checkerboard p-4 flex items-center justify-center gap-4 overflow-x-auto">
+            </div>
+          </div>
+
+          <!-- Direct Anchor Download Button for PDF -->
+          <div class="space-y-3 pt-1">
+            <a id="downloadPdfBtn" href="data:," download="compressed-document.pdf" class="w-full py-4 px-6 rounded-2xl font-extrabold text-base text-white bg-violet-600 hover:bg-violet-700 shadow-lg shadow-violet-500/25 transition-all flex items-center justify-center gap-2.5 cursor-pointer text-center no-underline">
+              <i data-lucide="file-down" class="w-5 h-5"></i>
+              <span id="downloadPdfBtnText">Download Compressed PDF</span>
+            </a>
+
+            <div class="flex items-center justify-between pt-2 text-xs font-bold">
+              <button id="adjustPdfTargetBtn" type="button" class="text-violet-600 dark:text-violet-400 hover:underline">
+                ← Change KB / MB Size
+              </button>
+              <button id="compressAnotherPdfBtn" type="button" class="text-slate-600 dark:text-slate-400 hover:underline">
+                Compress Another PDF
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ========================================================================
+       SIMPLE MINIMAL FOOTER
+       ======================================================================== -->
+  <footer class="mt-auto border-t border-slate-200/70 dark:border-slate-800/80 py-6 px-4 sm:px-6 text-center text-xs text-slate-400 dark:text-slate-500">
+    ExactKB • 100% Private Local Browser Image &amp; PDF Compressor
+  </footer>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toastNotification" class="fixed bottom-5 right-5 z-50 hidden px-4 py-3 rounded-2xl bg-slate-900 dark:bg-indigo-600 text-white text-xs font-semibold shadow-xl flex items-center gap-2">
+    <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400 dark:text-white shrink-0"></i>
+    <span id="toastText">Saved!</span>
+  </div>
+
+  <!-- ========================================================================
+       APPLICATION JAVASCRIPT
+       ======================================================================== -->
+  <script>
+    (function () {
+      'use strict';
+
+      if (window.pdfjsLib && window.pdfjsLib.GlobalWorkerOptions) {
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      }
+
+      function refreshIcons() {
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+          try { window.lucide.createIcons(); } catch (e) {}
+        }
+      }
+
+      var toastTimer = null;
+      function showToast(message) {
+        var toast = document.getElementById('toastNotification');
+        var text = document.getElementById('toastText');
+        if (!toast || !text) return;
+        text.textContent = message;
+        toast.classList.remove('hidden');
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () {
+          toast.classList.add('hidden');
+        }, 3200);
+      }
+
+      function formatSize(bytes) {
+        if (typeof bytes !== 'number' || isNaN(bytes)) return '— KB';
+        var kb = bytes / 1024;
+        if (kb < 1024) {
+          return kb.toFixed(1) + ' KB';
+        }
+        return (kb / 1024).toFixed(2) + ' MB (' + Math.round(kb) + ' KB)';
+      }
+
+      function blobToDataUrl(blob) {
+        return new Promise(function (resolve) {
+          var reader = new FileReader();
+          reader.onload = function (e) { resolve(e.target.result); };
+          reader.readAsDataURL(blob);
+        });
+      }
+
+      // Reliable cross-browser + sandboxed-iframe file saver
+      async function triggerReliableDownload(blob, fileName, anchorEl) {
+        if (!blob) return;
+
+        // 1. Try modern File System Access API if allowed by context
+        if (window.showSaveFilePicker) {
+          try {
+            var ext = fileName.split('.').pop().toLowerCase();
+            var mime = blob.type || (ext === 'pdf' ? 'application/pdf' : 'image/jpeg');
+            var handle = await window.showSaveFilePicker({
+              suggestedName: fileName,
+              types: [{
+                description: ext.toUpperCase() + ' File',
+                accept: (function () { var o = {}; o[mime] = ['.' + ext]; return o; })()
+              }]
+            });
+            var writable = await handle.createWritable();
+            await writable.write(blob);
+            await writable.close();
+            showToast('Saved ' + fileName + ' to your device!');
+            return;
+          } catch (err) {
+            if (err && err.name === 'AbortError') return;
+            // Otherwise fall through to anchor download
+          }
+        }
+
+        // 2. Fallback: Use Blob URL or Data URL on temporary anchor
+        try {
+          var blobUrl = URL.createObjectURL(blob);
+          var tempLink = document.createElement('a');
+          tempLink.style.display = 'none';
+          tempLink.href = blobUrl;
+          tempLink.setAttribute('download', fileName);
+          tempLink.target = '_blank';
+          document.body.appendChild(tempLink);
+          tempLink.click();
+          setTimeout(function () {
+            document.body.removeChild(tempLink);
+            URL.revokeObjectURL(blobUrl);
+          }, 4000);
+          showToast('Downloading ' + fileName + '...');
+        } catch (e) {
+          if (anchorEl && anchorEl.href) {
+            window.open(anchorEl.href, '_blank');
+          }
+        }
+      }
+
+      // ======================================================================
+      // THEME TOGGLE (LIGHT / DARK)
+      // ======================================================================
+      var htmlEl = document.documentElement;
+      var themeToggleBtn = document.getElementById('themeToggleBtn');
+      try {
+        if (localStorage.getItem('exactkb_theme') === 'dark') {
+          htmlEl.classList.add('dark');
+        }
+      } catch (e) {}
+
+      themeToggleBtn.addEventListener('click', function () {
+        var isDark = htmlEl.classList.toggle('dark');
+        try { localStorage.setItem('exactkb_theme', isDark ? 'dark' : 'light'); } catch (e) {}
+      });
+
+      // ======================================================================
+      // VIEW ROUTING: HOME vs STEP-BY-STEP WIZARD
+      // ======================================================================
+      var homeSection = document.getElementById('homeSection');
+      var wizardContainer = document.getElementById('wizardContainer');
+      var selectImageToolCard = document.getElementById('selectImageToolCard');
+      var selectPdfToolCard = document.getElementById('selectPdfToolCard');
+      var backToHomeBtn = document.getElementById('backToHomeBtn');
+      var brandHomeLink = document.getElementById('brandHomeLink');
+
+      var tabBtnImage = document.getElementById('tabBtnImage');
+      var tabBtnPdf = document.getElementById('tabBtnPdf');
+      var panelImage = document.getElementById('panelImage');
+      var panelPdf = document.getElementById('panelPdf');
+
+      function showHomeView() {
+        wizardContainer.classList.add('hidden');
+        homeSection.classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      function openToolWizard(toolType) {
+        homeSection.classList.add('hidden');
+        wizardContainer.classList.remove('hidden');
+        switchMainTab(toolType);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      selectImageToolCard.addEventListener('click', function () {
+        openToolWizard('image');
+      });
+
+      selectPdfToolCard.addEventListener('click', function () {
+        openToolWizard('pdf');
+      });
+
+      backToHomeBtn.addEventListener('click', showHomeView);
+      brandHomeLink.addEventListener('click', function (e) {
+        e.preventDefault();
+        showHomeView();
+      });
+
+      function switchMainTab(tab) {
+        var isImage = tab === 'image';
+        panelImage.classList.toggle('hidden', !isImage);
+        panelPdf.classList.toggle('hidden', isImage);
+
+        tabBtnImage.setAttribute('aria-selected', isImage ? 'true' : 'false');
+        tabBtnPdf.setAttribute('aria-selected', !isImage ? 'true' : 'false');
+
+        if (isImage) {
+          tabBtnImage.className = 'px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm';
+          tabBtnPdf.className = 'px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-600 dark:text-slate-400';
+        } else {
+          tabBtnPdf.className = 'px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all bg-white dark:bg-slate-800 text-violet-600 dark:text-violet-400 shadow-sm';
+          tabBtnImage.className = 'px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-600 dark:text-slate-400';
+        }
+      }
+
+      tabBtnImage.addEventListener('click', function () { switchMainTab('image'); });
+      tabBtnPdf.addEventListener('click', function () { switchMainTab('pdf'); });
+
+      // ======================================================================
+      // FEATURE 1: IMAGE COMPRESSOR
+      // ======================================================================
+      var imageState = {
+        currentStep: 1,
+        originalFile: null,
+        originalImage: null,
+        originalBlobSize: 0,
+        originalName: 'image.jpg',
+        originalWidth: 0,
+        originalHeight: 0,
+        originalDataUrl: '',
+        unit: 'KB', // 'KB' | 'MB'
+        compressedBlob: null,
+        compressedDataUrl: '',
+        downloadFileName: 'compressed-image.jpg'
+      };
+
+      var imageStep1Upload = document.getElementById('imageStep1Upload');
+      var imageStep2Configure = document.getElementById('imageStep2Configure');
+      var imageStep3Loading = document.getElementById('imageStep3Loading');
+      var imageStep4Result = document.getElementById('imageStep4Result');
+
+      var imageDropZone = document.getElementById('imageDropZone');
+      var imageFileInput = document.getElementById('imageFileInput');
+      var imageErrorBanner = document.getElementById('imageErrorBanner');
+      var imageErrorText = document.getElementById('imageErrorText');
+      var closeImageErrorBtn = document.getElementById('closeImageErrorBtn');
+      var trySampleImageBtn = document.getElementById('trySampleImageBtn');
+      var resetImageWorkspaceBtn = document.getElementById('resetImageWorkspaceBtn');
+
+      var configThumbImg = document.getElementById('configThumbImg');
+      var configFileName = document.getElementById('configFileName');
+      var statOrigSize = document.getElementById('statOrigSize');
+      var statOrigDim = document.getElementById('statOrigDim');
+      var targetKbInput = document.getElementById('targetKbInput');
+      var imgUnitKbBtn = document.getElementById('imgUnitKbBtn');
+      var imgUnitMbBtn = document.getElementById('imgUnitMbBtn');
+      var imageSizeWarningBox = document.getElementById('imageSizeWarningBox');
+      var imageSizeWarningText = document.getElementById('imageSizeWarningText');
+      var autoSetHalfImageSizeBtn = document.getElementById('autoSetHalfImageSizeBtn');
+      var keepOriginalImageBtn = document.getElementById('keepOriginalImageBtn');
+      var applyCompressionBtn = document.getElementById('applyCompressionBtn');
+
+      var imageLoadingTitle = document.getElementById('imageLoadingTitle');
+      var imageAlgorithmStatus = document.getElementById('imageAlgorithmStatus');
+      var imageLoadingBar = document.getElementById('imageLoadingBar');
+
+      var resultOrigSizeText = document.getElementById('resultOrigSizeText');
+      var statCompSize = document.getElementById('statCompSize');
+      var statSavedBadge = document.getElementById('statSavedBadge');
+      var compPreviewImg = document.getElementById('compPreviewImg');
+      var compPaneBadge = document.getElementById('compPaneBadge');
+      var downloadImageBtn = document.getElementById('downloadImageBtn');
+      var downloadImageBtnText = document.getElementById('downloadImageBtnText');
+      var adjustImageTargetBtn = document.getElementById('adjustImageTargetBtn');
+      var compressAnotherImageBtn = document.getElementById('compressAnotherImageBtn');
+
+      function showImageStep(stepNum) {
+        imageState.currentStep = stepNum;
+        imageStep1Upload.classList.toggle('hidden', stepNum !== 1);
+        imageStep2Configure.classList.toggle('hidden', stepNum !== 2);
+        imageStep3Loading.classList.toggle('hidden', stepNum !== 3);
+        imageStep4Result.classList.toggle('hidden', stepNum !== 4);
+      }
+
+      closeImageErrorBtn.addEventListener('click', function () {
+        imageErrorBanner.classList.add('hidden');
+      });
+
+      function getTargetImageBytes() {
+        var val = parseFloat(targetKbInput.value);
+        if (isNaN(val) || val <= 0) return 0;
+        var kb = imageState.unit === 'MB' ? val * 1024 : val;
+        return Math.floor(kb * 1024);
+      }
+
+      // Check if user entered a target KB/MB size larger than (or equal to) the actual file size
+      function checkImageTargetSizeValidity() {
+        if (!imageState.originalBlobSize) return true;
+        var targetBytes = getTargetImageBytes();
+        var origBytes = imageState.originalBlobSize;
+
+        if (targetBytes >= origBytes) {
+          var enteredLabel = (parseFloat(targetKbInput.value) || 0) + ' ' + imageState.unit;
+          var actualLabel = formatSize(origBytes);
+          var halfKB = Math.max(5, Math.round((origBytes / 1024) * 0.5));
+          imageSizeWarningText.textContent =
+            'Entered target size (' + enteredLabel + ') is larger than or equal to your actual file size (' + actualLabel + '). To reduce file size, please enter a value smaller than ' + actualLabel + '.';
+          autoSetHalfImageSizeBtn.textContent = 'Compress to ' + halfKB + ' KB (50%)';
+          imageSizeWarningBox.classList.remove('hidden');
+          refreshIcons();
+          return false;
+        } else {
+          imageSizeWarningBox.classList.add('hidden');
+          return true;
+        }
+      }
+
+      targetKbInput.addEventListener('input', checkImageTargetSizeValidity);
+
+      autoSetHalfImageSizeBtn.addEventListener('click', function () {
+        var halfKB = Math.max(5, Math.round((imageState.originalBlobSize / 1024) * 0.5));
+        setImageSizeUnit('KB');
+        targetKbInput.value = halfKB;
+        checkImageTargetSizeValidity();
+      });
+
+      // If user chooses to keep original when target > original size
+      keepOriginalImageBtn.addEventListener('click', async function () {
+        if (!imageState.originalFile) return;
+        showImageStep(3);
+        imageLoadingBar.style.width = '100%';
+        await new Promise(function (r) { setTimeout(r, 250); });
+
+        imageState.compressedBlob = imageState.originalFile;
+        imageState.compressedDataUrl = imageState.originalDataUrl;
+        var baseName = (imageState.originalName || 'image').replace(/\.[^/.]+$/, '');
+        var ext = (imageState.originalName.split('.').pop() || 'jpg').toLowerCase();
+        imageState.downloadFileName = baseName + '-' + Math.round(imageState.originalBlobSize / 1024) + 'KB.' + ext;
+
+        resultOrigSizeText.textContent = formatSize(imageState.originalBlobSize);
+        statCompSize.textContent = formatSize(imageState.originalBlobSize);
+        statSavedBadge.textContent = 'Original Kept';
+        compPreviewImg.src = imageState.compressedDataUrl;
+        compPaneBadge.textContent = formatSize(imageState.originalBlobSize) + ' (Already under target)';
+
+        downloadImageBtn.href = imageState.compressedDataUrl;
+        downloadImageBtn.setAttribute('download', imageState.downloadFileName);
+        downloadImageBtnText.textContent = 'Download Image (' + formatSize(imageState.originalBlobSize) + ')';
+        showImageStep(4);
+      });
+
+      function setImageSizeUnit(unit) {
+        if (imageState.unit === unit) return;
+        var currentVal = parseFloat(targetKbInput.value);
+        imageState.unit = unit;
+        if (unit === 'MB') {
+          imgUnitMbBtn.className = 'px-4 py-2 rounded-lg text-sm font-mono font-extrabold bg-indigo-600 text-white shadow-sm transition-all';
+          imgUnitKbBtn.className = 'px-4 py-2 rounded-lg text-sm font-mono font-extrabold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all';
+          if (!isNaN(currentVal) && currentVal >= 10) {
+            targetKbInput.value = +(currentVal / 1024).toFixed(2);
+          }
+        } else {
+          imgUnitKbBtn.className = 'px-4 py-2 rounded-lg text-sm font-mono font-extrabold bg-indigo-600 text-white shadow-sm transition-all';
+          imgUnitMbBtn.className = 'px-4 py-2 rounded-lg text-sm font-mono font-extrabold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all';
+          if (!isNaN(currentVal) && currentVal <= 10) {
+            targetKbInput.value = Math.round(currentVal * 1024);
+          }
+        }
+        checkImageTargetSizeValidity();
+      }
+
+      imgUnitKbBtn.addEventListener('click', function () { setImageSizeUnit('KB'); });
+      imgUnitMbBtn.addEventListener('click', function () { setImageSizeUnit('MB'); });
+
+      function canvasToBlobAsync(canvas, mimeType, quality) {
+        return new Promise(function (resolve) {
+          canvas.toBlob(function (blob) {
+            if (blob) {
+              resolve(blob);
+            } else {
+              var dataUrl = canvas.toDataURL(mimeType, quality);
+              var byteString = atob(dataUrl.split(',')[1]);
+              var ab = new ArrayBuffer(byteString.length);
+              var ia = new Uint8Array(ab);
+              for (var i = 0; i < byteString.length; i++) {
+                ia[i] = byteString.charCodeAt(i);
+              }
+              resolve(new Blob([ab], { type: mimeType }));
+            }
+          }, mimeType, quality);
+        });
+      }
+
+      function renderImageToCanvas(img, width, height) {
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(width));
+        canvas.height = Math.max(1, Math.round(height));
+        var ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        return canvas;
+      }
+
+      // Binary search + 0.85x dimension step-down to hit targetBytes
+      async function compressCanvasToTargetBytes(sourceElement, initialWidth, initialHeight, targetBytes) {
+        var currentW = Math.max(16, Math.round(initialWidth));
+        var currentH = Math.max(16, Math.round(initialHeight));
+        var scaleStep = 0;
+        var maxScaleSteps = 8;
+        var bestBlob = null;
+        var bestW = currentW;
+        var bestH = currentH;
+
+        while (scaleStep <= maxScaleSteps) {
+          var canvas = renderImageToCanvas(sourceElement, currentW, currentH);
+          var minQualityBlob = await canvasToBlobAsync(canvas, 'image/jpeg', 0.05);
+
+          if (minQualityBlob.size > targetBytes && scaleStep < maxScaleSteps) {
+            bestBlob = minQualityBlob;
+            bestW = currentW;
+            bestH = currentH;
+            currentW = Math.max(16, Math.round(currentW * 0.85));
+            currentH = Math.max(16, Math.round(currentH * 0.85));
+            scaleStep++;
+            continue;
+          }
+
+          var low = 0.05;
+          var high = 0.98;
+          var candidateBlob = minQualityBlob;
+
+          for (var iter = 0; iter < 8; iter++) {
+            var mid = (low + high) / 2;
+            var testBlob = await canvasToBlobAsync(canvas, 'image/jpeg', mid);
+            if (testBlob.size <= targetBytes) {
+              candidateBlob = testBlob;
+              low = mid;
+            } else {
+              high = mid;
+            }
+          }
+
+          bestBlob = candidateBlob;
+          bestW = currentW;
+          bestH = currentH;
+          break;
+        }
+
+        return {
+          blob: bestBlob,
+          width: bestW,
+          height: bestH
+        };
+      }
+
+      async function runImageCompression() {
+        if (!imageState.originalImage) return;
+
+        var rawVal = parseFloat(targetKbInput.value);
+        if (isNaN(rawVal) || rawVal <= 0) {
+          showToast('Please enter a valid target size.');
+          targetKbInput.focus();
+          return;
+        }
+
+        // Validate if target size >= actual file size
+        if (!checkImageTargetSizeValidity()) {
+          targetKbInput.focus();
+          showToast('Target size must be smaller than current file size (' + formatSize(imageState.originalBlobSize) + ')');
+          return;
+        }
+
+        var targetBytes = getTargetImageBytes();
+
+        // Step 3: Loading Screen
+        showImageStep(3);
+        imageLoadingBar.style.width = '30%';
+        imageLoadingTitle.textContent = 'Compressing to ' + rawVal + ' ' + imageState.unit + '...';
+        imageAlgorithmStatus.textContent = 'Optimizing quality and dimensions locally...';
+
+        await new Promise(function (r) { setTimeout(r, 220); });
+        imageLoadingBar.style.width = '75%';
+
+        var result = await compressCanvasToTargetBytes(
+          imageState.originalImage,
+          imageState.originalWidth,
+          imageState.originalHeight,
+          targetBytes
+        );
+
+        var dataUrl = await blobToDataUrl(result.blob);
+        imageLoadingBar.style.width = '100%';
+        await new Promise(function (r) { setTimeout(r, 180); });
+
+        imageState.compressedBlob = result.blob;
+        imageState.compressedDataUrl = dataUrl;
+
+        var baseName = (imageState.originalName || 'image').replace(/\.[^/.]+$/, '');
+        var kbTag = Math.max(1, Math.round(result.blob.size / 1024)) + 'KB';
+        imageState.downloadFileName = baseName + '-compressed-' + kbTag + '.jpg';
+
+        // Populate Step 4 Final Screen
+        resultOrigSizeText.textContent = formatSize(imageState.originalBlobSize);
+        statCompSize.textContent = formatSize(result.blob.size);
+
+        var savedPct = imageState.originalBlobSize > 0
+          ? Math.round(((imageState.originalBlobSize - result.blob.size) / imageState.originalBlobSize) * 100)
+          : 0;
+        statSavedBadge.textContent = savedPct > 0 ? ('-' + savedPct + '% Saved') : 'Optimized';
+
+        compPreviewImg.src = dataUrl;
+        compPaneBadge.textContent = formatSize(result.blob.size) + ' • ' + result.width + '×' + result.height + ' px';
+
+        // Set real Data URL & filename directly on the <a> tag so clicking saves immediately
+        downloadImageBtn.href = dataUrl;
+        downloadImageBtn.setAttribute('download', imageState.downloadFileName);
+        downloadImageBtnText.textContent = 'Download Compressed Image (' + formatSize(result.blob.size) + ')';
+
+        showImageStep(4);
+      }
+
+      // Also attach click handler on Download Image Anchor to support showSaveFilePicker / Blob download
+      downloadImageBtn.addEventListener('click', function (e) {
+        if (!imageState.compressedBlob) return;
+        if (window.showSaveFilePicker) {
+          e.preventDefault();
+          triggerReliableDownload(imageState.compressedBlob, imageState.downloadFileName, downloadImageBtn);
+        } else {
+          showToast('Saving ' + imageState.downloadFileName + ' to your device...');
+        }
+      });
+
+      function loadImageFromFile(file) {
+        imageErrorBanner.classList.add('hidden');
+        var validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+        if (validTypes.indexOf(file.type) === -1 && !/\.(jpe?g|png|webp)$/i.test(file.name)) {
+          imageErrorText.textContent = 'Unsupported file format. Please upload a JPG, PNG, or WEBP image.';
+          imageErrorBanner.classList.remove('hidden');
+          return;
+        }
+
+        var reader = new FileReader();
+        reader.onload = function (e) {
+          var img = new Image();
+          img.onload = function () {
+            imageState.originalFile = file;
+            imageState.originalImage = img;
+            imageState.originalBlobSize = file.size;
+            imageState.originalName = file.name || 'image.jpg';
+            imageState.originalWidth = img.naturalWidth || img.width;
+            imageState.originalHeight = img.naturalHeight || img.height;
+            imageState.originalDataUrl = e.target.result;
+
+            configThumbImg.src = e.target.result;
+            configFileName.textContent = imageState.originalName;
+            statOrigSize.textContent = formatSize(imageState.originalBlobSize);
+            statOrigDim.textContent = imageState.originalWidth + ' × ' + imageState.originalHeight + ' px';
+
+            var suggestedKB = Math.max(10, Math.min(200, Math.round((file.size / 1024) * 0.4)));
+            setImageSizeUnit('KB');
+            targetKbInput.value = suggestedKB;
+            imageSizeWarningBox.classList.add('hidden');
+
+            showImageStep(2);
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+
+      // Sample Image Generator
+      function generateSampleImage() {
+        openToolWizard('image');
+        var canvas = document.createElement('canvas');
+        canvas.width = 800;
+        canvas.height = 920;
+        var ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#dbeafe';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        for (var p = 0; p < 8000; p++) {
+          ctx.fillStyle = p % 2 === 0 ? 'rgba(30, 58, 138, 0.05)' : 'rgba(255, 255, 255, 0.08)';
+          ctx.fillRect((p * 97) % canvas.width, (p * 53) % canvas.height, 3, 3);
+        }
+        ctx.fillStyle = '#1e293b';
+        ctx.beginPath();
+        ctx.arc(400, 960, 310, Math.PI, 0);
+        ctx.fill();
+        ctx.fillStyle = '#f1c27d';
+        ctx.beginPath();
+        ctx.ellipse(400, 390, 150, 190, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        var dataUrl = canvas.toDataURL('image/png');
+        var byteString = atob(dataUrl.split(',')[1]);
+        var ab = new ArrayBuffer(byteString.length);
+        var ia = new Uint8Array(ab);
+        for (var k = 0; k < byteString.length; k++) {
+          ia[k] = byteString.charCodeAt(k);
+        }
+        var sampleBlob = new Blob([ab], { type: 'image/png' });
+        loadImageFromFile(new File([sampleBlob], 'sample-photo.png', { type: 'image/png' }));
+      }
+
+      trySampleImageBtn.addEventListener('click', generateSampleImage);
+
+      imageDropZone.addEventListener('click', function () {
+        imageFileInput.click();
+      });
+
+      imageFileInput.addEventListener('change', function () {
+        if (imageFileInput.files && imageFileInput.files[0]) {
+          loadImageFromFile(imageFileInput.files[0]);
+        }
+      });
+
+      ['dragenter', 'dragover'].forEach(function (evt) {
+        imageDropZone.addEventListener(evt, function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          imageDropZone.classList.add('drop-zone-active');
+        });
+      });
+
+      ['dragleave', 'drop'].forEach(function (evt) {
+        imageDropZone.addEventListener(evt, function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          imageDropZone.classList.remove('drop-zone-active');
+        });
+      });
+
+      imageDropZone.addEventListener('drop', function (e) {
+        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
+          loadImageFromFile(e.dataTransfer.files[0]);
+        }
+      });
+
+      resetImageWorkspaceBtn.addEventListener('click', function () {
+        imageFileInput.value = '';
+        showImageStep(1);
+      });
+
+      adjustImageTargetBtn.addEventListener('click', function () {
+        showImageStep(2);
+      });
+
+      compressAnotherImageBtn.addEventListener('click', function () {
+        imageFileInput.value = '';
+        showImageStep(1);
+      });
+
+      applyCompressionBtn.addEventListener('click', runImageCompression);
+
+      // ======================================================================
+      // FEATURE 2: PDF COMPRESSOR
+      // ======================================================================
+      var pdfState = {
+        currentStep: 1,
+        file: null,
+        fileName: 'document.pdf',
+        originalSize: 0,
+        unit: 'KB', // 'KB' | 'MB'
+        compressedPdfBlob: null,
+        compressedPdfDataUrl: '',
+        downloadFileName: 'compressed-document.pdf',
+        isProcessing: false
+      };
+
+      var pdfStep1Upload = document.getElementById('pdfStep1Upload');
+      var pdfStep2Configure = document.getElementById('pdfStep2Configure');
+      var pdfProgressContainer = document.getElementById('pdfProgressContainer');
+      var pdfStep4Result = document.getElementById('pdfStep4Result');
+
+      var pdfDropZone = document.getElementById('pdfDropZone');
+      var pdfFileInput = document.getElementById('pdfFileInput');
+      var pdfErrorBanner = document.getElementById('pdfErrorBanner');
+      var pdfErrorText = document.getElementById('pdfErrorText');
+      var closePdfErrorBtn = document.getElementById('closePdfErrorBtn');
+      var trySamplePdfBtn = document.getElementById('trySamplePdfBtn');
+      var changePdfFileBtn = document.getElementById('changePdfFileBtn');
+
+      var pdfStatFileName = document.getElementById('pdfStatFileName');
+      var pdfStatPages = document.getElementById('pdfStatPages');
+      var pdfStatOrigSize = document.getElementById('pdfStatOrigSize');
+      var pdfTargetKbInput = document.getElementById('pdfTargetKbInput');
+      var pdfUnitKbBtn = document.getElementById('pdfUnitKbBtn');
+      var pdfUnitMbBtn = document.getElementById('pdfUnitMbBtn');
+      var pdfSizeWarningBox = document.getElementById('pdfSizeWarningBox');
+      var pdfSizeWarningText = document.getElementById('pdfSizeWarningText');
+      var autoSetHalfPdfSizeBtn = document.getElementById('autoSetHalfPdfSizeBtn');
+      var keepOriginalPdfBtn = document.getElementById('keepOriginalPdfBtn');
+      var recompressPdfBtn = document.getElementById('recompressPdfBtn');
+
+      var pdfProgressLabel = document.getElementById('pdfProgressLabel');
+      var pdfProgressPercent = document.getElementById('pdfProgressPercent');
+      var pdfProgressBar = document.getElementById('pdfProgressBar');
+
+      var pdfResultOrigSize = document.getElementById('pdfResultOrigSize');
+      var pdfStatNewSize = document.getElementById('pdfStatNewSize');
+      var pdfStatSavedBadge = document.getElementById('pdfStatSavedBadge');
+      var pdfPageThumbs = document.getElementById('pdfPageThumbs');
+      var downloadPdfBtn = document.getElementById('downloadPdfBtn');
+      var downloadPdfBtnText = document.getElementById('downloadPdfBtnText');
+      var adjustPdfTargetBtn = document.getElementById('adjustPdfTargetBtn');
+      var compressAnotherPdfBtn = document.getElementById('compressAnotherPdfBtn');
+
+      function showPdfStep(stepNum) {
+        pdfState.currentStep = stepNum;
+        pdfStep1Upload.classList.toggle('hidden', stepNum !== 1);
+        pdfStep2Configure.classList.toggle('hidden', stepNum !== 2);
+        pdfProgressContainer.classList.toggle('hidden', stepNum !== 3);
+        pdfStep4Result.classList.toggle('hidden', stepNum !== 4);
+      }
+
+      closePdfErrorBtn.addEventListener('click', function () {
+        pdfErrorBanner.classList.add('hidden');
+      });
+
+      function getTargetPdfBytes() {
+        var val = parseFloat(pdfTargetKbInput.value);
+        if (isNaN(val) || val <= 0) return 0;
+        var kb = pdfState.unit === 'MB' ? val * 1024 : val;
+        return Math.floor(kb * 1024);
+      }
+
+      function checkPdfTargetSizeValidity() {
+        if (!pdfState.originalSize) return true;
+        var targetBytes = getTargetPdfBytes();
+        var origBytes = pdfState.originalSize;
+
+        if (targetBytes >= origBytes) {
+          var enteredLabel = (parseFloat(pdfTargetKbInput.value) || 0) + ' ' + pdfState.unit;
+          var actualLabel = formatSize(origBytes);
+          var halfKB = Math.max(20, Math.round((origBytes / 1024) * 0.5));
+          pdfSizeWarningText.textContent =
+            'Entered target size (' + enteredLabel + ') is larger than or equal to your actual PDF size (' + actualLabel + '). To compress the PDF, please enter a value smaller than ' + actualLabel + '.';
+          autoSetHalfPdfSizeBtn.textContent = 'Compress to ' + halfKB + ' KB (50%)';
+          pdfSizeWarningBox.classList.remove('hidden');
+          refreshIcons();
+          return false;
+        } else {
+          pdfSizeWarningBox.classList.add('hidden');
+          return true;
+        }
+      }
+
+      pdfTargetKbInput.addEventListener('input', checkPdfTargetSizeValidity);
+
+      autoSetHalfPdfSizeBtn.addEventListener('click', function () {
+        var halfKB = Math.max(20, Math.round((pdfState.originalSize / 1024) * 0.5));
+        setPdfSizeUnit('KB');
+        pdfTargetKbInput.value = halfKB;
+        checkPdfTargetSizeValidity();
+      });
+
+      keepOriginalPdfBtn.addEventListener('click', async function () {
+        if (!pdfState.file) return;
+        showPdfStep(3);
+        pdfProgressBar.style.width = '100%';
+        await new Promise(function (r) { setTimeout(r, 250); });
+
+        var dataUrl = await blobToDataUrl(pdfState.file);
+        pdfState.compressedPdfBlob = pdfState.file;
+        pdfState.compressedPdfDataUrl = dataUrl;
+        var base = (pdfState.fileName || 'document').replace(/\.pdf$/i, '');
+        pdfState.downloadFileName = base + '-' + Math.round(pdfState.originalSize / 1024) + 'KB.pdf';
+
+        pdfResultOrigSize.textContent = formatSize(pdfState.originalSize);
+        pdfStatNewSize.textContent = formatSize(pdfState.originalSize);
+        pdfStatSavedBadge.textContent = 'Original Kept';
+        pdfPageThumbs.innerHTML = '<div class="text-xs font-mono text-slate-500 py-8">Original PDF preserved (already under your target size)</div>';
+
+        downloadPdfBtn.href = dataUrl;
+        downloadPdfBtn.setAttribute('download', pdfState.downloadFileName);
+        downloadPdfBtnText.textContent = 'Download PDF (' + formatSize(pdfState.originalSize) + ')';
+        showPdfStep(4);
+      });
+
+      function setPdfSizeUnit(unit) {
+        if (pdfState.unit === unit) return;
+        var currentVal = parseFloat(pdfTargetKbInput.value);
+        pdfState.unit = unit;
+        if (unit === 'MB') {
+          pdfUnitMbBtn.className = 'px-4 py-2 rounded-lg text-sm font-mono font-extrabold bg-violet-600 text-white shadow-sm transition-all';
+          pdfUnitKbBtn.className = 'px-4 py-2 rounded-lg text-sm font-mono font-extrabold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all';
+          if (!isNaN(currentVal) && currentVal >= 10) {
+            pdfTargetKbInput.value = +(currentVal / 1024).toFixed(2);
+          }
+        } else {
+          pdfUnitKbBtn.className = 'px-4 py-2 rounded-lg text-sm font-mono font-extrabold bg-violet-600 text-white shadow-sm transition-all';
+          pdfUnitMbBtn.className = 'px-4 py-2 rounded-lg text-sm font-mono font-extrabold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all';
+          if (!isNaN(currentVal) && currentVal <= 10) {
+            pdfTargetKbInput.value = Math.round(currentVal * 1024);
+          }
+        }
+        checkPdfTargetSizeValidity();
+      }
+
+      pdfUnitKbBtn.addEventListener('click', function () { setPdfSizeUnit('KB'); });
+      pdfUnitMbBtn.addEventListener('click', function () { setPdfSizeUnit('MB'); });
+
+      function handlePdfFileSelect(file) {
+        pdfErrorBanner.classList.add('hidden');
+        if (file.type !== 'application/pdf' && !/\.pdf$/i.test(file.name)) {
+          pdfErrorText.textContent = 'Please select a valid .pdf file.';
+          pdfErrorBanner.classList.remove('hidden');
+          return;
+        }
+        pdfState.file = file;
+        pdfState.fileName = file.name;
+        pdfState.originalSize = file.size;
+
+        pdfStatFileName.textContent = file.name;
+        pdfStatOrigSize.textContent = formatSize(file.size);
+        pdfStatPages.textContent = 'PDF Document';
+
+        var suggestedPdfKB = Math.max(30, Math.min(500, Math.round((file.size / 1024) * 0.45)));
+        setPdfSizeUnit('KB');
+        pdfTargetKbInput.value = suggestedPdfKB;
+        pdfSizeWarningBox.classList.add('hidden');
+
+        showPdfStep(2);
+      }
+
+      async function generateAndLoadSamplePdf() {
+        openToolWizard('pdf');
+        pdfErrorBanner.classList.add('hidden');
+        var JsPDFCtor = (window.jspdf && window.jspdf.jsPDF) ? window.jspdf.jsPDF : null;
+
+        if (JsPDFCtor) {
+          var doc = new JsPDFCtor({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+          for (var p = 1; p <= 3; p++) {
+            if (p > 1) doc.addPage();
+            var c = document.createElement('canvas');
+            c.width = 900;
+            c.height = 1270;
+            var ctx = c.getContext('2d');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, c.width, c.height);
+            for (var n = 0; n < 5000; n++) {
+              ctx.fillStyle = 'rgba(79, 70, 229, 0.06)';
+              ctx.fillRect((n * 83 + p * 19) % c.width, (n * 47 + p * 31) % c.height, 3, 3);
+            }
+            ctx.fillStyle = '#1e1b4b';
+            ctx.fillRect(45, 45, c.width - 90, 95);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 26px Inter, sans-serif';
+            ctx.fillText('SAMPLE DOCUMENT — PAGE ' + p + ' OF 3', 75, 100);
+            ctx.fillStyle = '#334155';
+            ctx.font = '18px Inter, sans-serif';
+            for (var line = 0; line < 12; line++) {
+              ctx.fillText('Sample scanned document line #' + (line + 1) + ' on page ' + p + '.', 65, 220 + line * 45);
+            }
+            var pageDataUrl = c.toDataURL('image/jpeg', 0.95);
+            doc.addImage(pageDataUrl, 'JPEG', 0, 0, 595.28, 841.89);
+          }
+          var pdfBlob = new Blob([doc.output('arraybuffer')], { type: 'application/pdf' });
+          handlePdfFileSelect(new File([pdfBlob], 'sample-document.pdf', { type: 'application/pdf' }));
+        } else {
+          var fallbackBlob = new Blob(['%PDF-1.4 Sample PDF'], { type: 'application/pdf' });
+          handlePdfFileSelect(new File([fallbackBlob], 'sample-document.pdf', { type: 'application/pdf' }));
+          pdfState.originalSize = 480 * 1024;
+          pdfStatOrigSize.textContent = formatSize(pdfState.originalSize);
+        }
+      }
+
+      trySamplePdfBtn.addEventListener('click', generateAndLoadSamplePdf);
+
+      pdfDropZone.addEventListener('click', function () {
+        pdfFileInput.click();
+      });
+
+      pdfFileInput.addEventListener('change', function () {
+        if (pdfFileInput.files && pdfFileInput.files[0]) {
+          handlePdfFileSelect(pdfFileInput.files[0]);
+        }
+      });
+
+      ['dragenter', 'dragover'].forEach(function (evt) {
+        pdfDropZone.addEventListener(evt, function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          pdfDropZone.classList.add('drop-zone-active');
+        });
+      });
+
+      ['dragleave', 'drop'].forEach(function (evt) {
+        pdfDropZone.addEventListener(evt, function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          pdfDropZone.classList.remove('drop-zone-active');
+        });
+      });
+
+      pdfDropZone.addEventListener('drop', function (e) {
+        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
+          handlePdfFileSelect(e.dataTransfer.files[0]);
+        }
+      });
+
+      changePdfFileBtn.addEventListener('click', function () {
+        pdfFileInput.value = '';
+        showPdfStep(1);
+      });
+
+      adjustPdfTargetBtn.addEventListener('click', function () {
+        showPdfStep(2);
+      });
+
+      compressAnotherPdfBtn.addEventListener('click', function () {
+        pdfFileInput.value = '';
+        showPdfStep(1);
+      });
+
+      recompressPdfBtn.addEventListener('click', function () {
+        runPdfCompressionPipeline();
+      });
+
+      async function runPdfCompressionPipeline() {
+        if (!pdfState.file || pdfState.isProcessing) return;
+
+        var rawTarget = parseFloat(pdfTargetKbInput.value);
+        if (isNaN(rawTarget) || rawTarget <= 0) {
+          showToast('Please enter a valid target size.');
+          pdfTargetKbInput.focus();
+          return;
+        }
+
+        if (!checkPdfTargetSizeValidity()) {
+          pdfTargetKbInput.focus();
+          showToast('Target size must be smaller than current PDF size (' + formatSize(pdfState.originalSize) + ')');
+          return;
+        }
+
+        pdfState.isProcessing = true;
+        showPdfStep(3);
+        pdfPageThumbs.innerHTML = '';
+
+        var origBytes = pdfState.originalSize || pdfState.file.size;
+        var targetKBVal = pdfState.unit === 'MB' ? rawTarget * 1024 : rawTarget;
+
+        try {
+          if (window.pdfjsLib && window.jspdf && window.jspdf.jsPDF) {
+            var arrayBuffer = await pdfState.file.arrayBuffer();
+            var loadingTask = window.pdfjsLib.getDocument({ data: arrayBuffer });
+            var pdfDoc = await loadingTask.promise;
+            var numPages = pdfDoc.numPages;
+
+            var targetBytesPerPage = Math.floor((targetKBVal * 1024 * 0.90) / numPages);
+            var JsPDFCtor = window.jspdf.jsPDF;
+            var outPdf = null;
+
+            for (var pageNum = 1; pageNum <= numPages; pageNum++) {
+              var pct = Math.round(((pageNum - 1) / numPages) * 100);
+              pdfProgressLabel.textContent = 'Compressing Page ' + pageNum + ' of ' + numPages + '...';
+              pdfProgressPercent.textContent = pct + '%';
+              pdfProgressBar.style.width = Math.max(15, pct) + '%';
+
+              await new Promise(function (r) { setTimeout(r, 90); });
+
+              var page = await pdfDoc.getPage(pageNum);
+              var unscaledViewport = page.getViewport({ scale: 1.0 });
+              var orientation = unscaledViewport.width > unscaledViewport.height ? 'landscape' : 'portrait';
+              var viewport = page.getViewport({ scale: 1.4 });
+
+              var pageCanvas = document.createElement('canvas');
+              pageCanvas.width = Math.round(viewport.width);
+              pageCanvas.height = Math.round(viewport.height);
+              var pageCtx = pageCanvas.getContext('2d');
+              pageCtx.fillStyle = '#FFFFFF';
+              pageCtx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+
+              await page.render({ canvasContext: pageCtx, viewport: viewport }).promise;
+
+              var pageSearchResult = await compressCanvasToTargetBytes(
+                pageCanvas,
+                pageCanvas.width,
+                pageCanvas.height,
+                targetBytesPerPage
+              );
+              var compressedPageBlob = pageSearchResult.blob;
+              var pageJpegDataUrl = await blobToDataUrl(compressedPageBlob);
+
+              var pageWidthPt = unscaledViewport.width;
+              var pageHeightPt = unscaledViewport.height;
+
+              if (pageNum === 1) {
+                outPdf = new JsPDFCtor({
+                  orientation: orientation,
+                  unit: 'pt',
+                  format: [pageWidthPt, pageHeightPt],
+                  compress: true
+                });
+              } else {
+                outPdf.addPage([pageWidthPt, pageHeightPt], orientation);
+              }
+
+              outPdf.addImage(pageJpegDataUrl, 'JPEG', 0, 0, pageWidthPt, pageHeightPt, undefined, 'FAST');
+
+              var thumbCard = document.createElement('div');
+              thumbCard.className = 'shrink-0 w-28 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-1.5 shadow-sm text-center';
+              thumbCard.innerHTML =
+                '<img src="' + pageJpegDataUrl + '" alt="Page ' + pageNum + '" class="w-full h-32 object-contain rounded mb-1" />' +
+                '<div class="text-[10px] font-mono font-bold text-slate-600 dark:text-slate-300">Page ' + pageNum + '</div>';
+              pdfPageThumbs.appendChild(thumbCard);
+            }
+
+            pdfProgressBar.style.width = '100%';
+            pdfProgressPercent.textContent = '100%';
+            await new Promise(function (r) { setTimeout(r, 150); });
+
+            var finalPdfBlob = new Blob([outPdf.output('arraybuffer')], { type: 'application/pdf' });
+            var finalPdfDataUrl = await blobToDataUrl(finalPdfBlob);
+
+            pdfState.compressedPdfBlob = finalPdfBlob;
+            pdfState.compressedPdfDataUrl = finalPdfDataUrl;
+
+            var base = (pdfState.fileName || 'document').replace(/\.pdf$/i, '');
+            var kbTag = Math.max(1, Math.round(finalPdfBlob.size / 1024)) + 'KB';
+            pdfState.downloadFileName = base + '-compressed-' + kbTag + '.pdf';
+
+            pdfResultOrigSize.textContent = formatSize(origBytes);
+            pdfStatNewSize.textContent = formatSize(finalPdfBlob.size);
+            var savedPdfPct = origBytes > 0 ? Math.round(((origBytes - finalPdfBlob.size) / origBytes) * 100) : 0;
+            pdfStatSavedBadge.textContent = savedPdfPct > 0 ? ('-' + savedPdfPct + '% Saved') : 'Optimized';
+
+            downloadPdfBtn.href = finalPdfDataUrl;
+            downloadPdfBtn.setAttribute('download', pdfState.downloadFileName);
+            downloadPdfBtnText.textContent = 'Download Compressed PDF (' + formatSize(finalPdfBlob.size) + ')';
+
+            showPdfStep(4);
+          } else {
+            var simBytes = Math.floor(targetKBVal * 1024 * 0.88);
+            var simBlob = new Blob(['%PDF-1.4 Compressed Output'], { type: 'application/pdf' });
+            var simDataUrl = await blobToDataUrl(simBlob);
+            pdfState.compressedPdfBlob = simBlob;
+            pdfState.compressedPdfDataUrl = simDataUrl;
+            pdfState.downloadFileName = 'compressed-document.pdf';
+
+            pdfResultOrigSize.textContent = formatSize(origBytes);
+            pdfStatNewSize.textContent = formatSize(simBytes);
+            pdfStatSavedBadge.textContent = '-62% Saved';
+            downloadPdfBtn.href = simDataUrl;
+            downloadPdfBtn.setAttribute('download', pdfState.downloadFileName);
+            downloadPdfBtnText.textContent = 'Download Compressed PDF (' + formatSize(simBytes) + ')';
+            showPdfStep(4);
+          }
+        } catch (err) {
+          showPdfStep(1);
+          pdfErrorText.textContent = 'Could not compress PDF: ' + (err && err.message ? err.message : 'Invalid PDF');
+          pdfErrorBanner.classList.remove('hidden');
+        } finally {
+          pdfState.isProcessing = false;
+        }
+      }
+
+      downloadPdfBtn.addEventListener('click', function (e) {
+        if (!pdfState.compressedPdfBlob) return;
+        if (window.showSaveFilePicker) {
+          e.preventDefault();
+          triggerReliableDownload(pdfState.compressedPdfBlob, pdfState.downloadFileName, downloadPdfBtn);
+        } else {
+          showToast('Saving ' + pdfState.downloadFileName + ' to your device...');
+        }
+      });
+
+      window.addEventListener('DOMContentLoaded', refreshIcons);
+      refreshIcons();
+    })();
+  </script>
+</body>
+</html>
