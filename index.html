@@ -382,14 +382,14 @@
             </label>
 
             <div class="flex items-stretch gap-2.5">
-              <input id="targetKbInput" type="number" min="1" max="50000" step="any" value="50" class="flex-1 px-4 py-3.5 rounded-xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 font-mono font-extrabold text-lg text-slate-900 dark:text-white focus:border-indigo-600 focus:outline-none transition-colors" placeholder="Enter size (e.g. 50)" />
+              <input id="targetKbInput" type="number" min="1" max="50000" step="any" value="50" class="flex-1 min-w-0 w-full px-4 py-3.5 rounded-xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 font-mono font-extrabold text-lg text-slate-900 dark:text-white focus:border-indigo-600 focus:outline-none transition-colors" placeholder="Enter size (e.g. 50)" />
 
               <!-- KB / MB Unit Toggle -->
               <div class="inline-flex p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 shrink-0">
-                <button id="imgUnitKbBtn" type="button" class="px-4 py-2 rounded-lg text-sm font-mono font-extrabold bg-indigo-600 text-white shadow-sm transition-all">
+                <button id="imgUnitKbBtn" type="button" class="px-3.5 py-2 rounded-lg text-sm font-mono font-extrabold bg-indigo-600 text-white shadow-sm transition-all">
                   KB
                 </button>
-                <button id="imgUnitMbBtn" type="button" class="px-4 py-2 rounded-lg text-sm font-mono font-extrabold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">
+                <button id="imgUnitMbBtn" type="button" class="px-3.5 py-2 rounded-lg text-sm font-mono font-extrabold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">
                   MB
                 </button>
               </div>
@@ -489,6 +489,10 @@
 
           <!-- Direct Anchor Download Button (Works natively in all browsers & sandboxed iframes) -->
           <div class="space-y-3 pt-1">
+            <button id="viewImageBtn" type="button" class="w-full py-3.5 px-6 rounded-2xl font-extrabold text-sm sm:text-base border-2 border-indigo-600 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-slate-800 transition-colors flex items-center justify-center gap-2.5">
+              <i data-lucide="eye" class="w-5 h-5"></i>
+              <span>View Compressed Image</span>
+            </button>
             <a id="downloadImageBtn" href="data:," download="compressed-image.jpg" class="w-full py-4 px-6 rounded-2xl font-extrabold text-base text-white bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-500/25 transition-all flex items-center justify-center gap-2.5 cursor-pointer text-center no-underline">
               <i data-lucide="download" class="w-5 h-5"></i>
               <span id="downloadImageBtnText">Download Compressed Image</span>
@@ -576,13 +580,13 @@
             </label>
 
             <div class="flex items-stretch gap-2.5">
-              <input id="pdfTargetKbInput" type="number" min="1" max="50000" step="any" value="200" class="flex-1 px-4 py-3.5 rounded-xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 font-mono font-extrabold text-lg text-slate-900 dark:text-white focus:border-violet-600 focus:outline-none transition-colors" placeholder="Enter size (e.g. 200)" />
+              <input id="pdfTargetKbInput" type="number" min="1" max="50000" step="any" value="200" class="flex-1 min-w-0 w-full px-4 py-3.5 rounded-xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 font-mono font-extrabold text-lg text-slate-900 dark:text-white focus:border-violet-600 focus:outline-none transition-colors" placeholder="Enter size (e.g. 200)" />
 
               <div class="inline-flex p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 shrink-0">
-                <button id="pdfUnitKbBtn" type="button" class="px-4 py-2 rounded-lg text-sm font-mono font-extrabold bg-violet-600 text-white shadow-sm transition-all">
+                <button id="pdfUnitKbBtn" type="button" class="px-3.5 py-2 rounded-lg text-sm font-mono font-extrabold bg-violet-600 text-white shadow-sm transition-all">
                   KB
                 </button>
-                <button id="pdfUnitMbBtn" type="button" class="px-4 py-2 rounded-lg text-sm font-mono font-extrabold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">
+                <button id="pdfUnitMbBtn" type="button" class="px-3.5 py-2 rounded-lg text-sm font-mono font-extrabold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">
                   MB
                 </button>
               </div>
@@ -679,6 +683,10 @@
 
           <!-- Direct Anchor Download Button for PDF -->
           <div class="space-y-3 pt-1">
+            <button id="viewPdfBtn" type="button" class="w-full py-3.5 px-6 rounded-2xl font-extrabold text-sm sm:text-base border-2 border-violet-600 text-violet-600 dark:border-violet-400 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-slate-800 transition-colors flex items-center justify-center gap-2.5">
+              <i data-lucide="eye" class="w-5 h-5"></i>
+              <span>View Compressed PDF</span>
+            </button>
             <a id="downloadPdfBtn" href="data:," download="compressed-document.pdf" class="w-full py-4 px-6 rounded-2xl font-extrabold text-base text-white bg-violet-600 hover:bg-violet-700 shadow-lg shadow-violet-500/25 transition-all flex items-center justify-center gap-2.5 cursor-pointer text-center no-underline">
               <i data-lucide="file-down" class="w-5 h-5"></i>
               <span id="downloadPdfBtnText">Download Compressed PDF</span>
@@ -707,6 +715,22 @@
     ExactKB • 100% Private Local Browser Image &amp; PDF Compressor<br />
     <a href="about.html" class="hover:underline">About</a> • <a href="privacy.html" class="hover:underline">Privacy Policy</a> • <a href="mailto:exactKB@gmail.com" class="hover:underline">Contact</a>
   </footer>
+
+  <!-- PREVIEW OVERLAY (view compressed image / PDF) -->
+  <div id="previewOverlay" class="fixed inset-0 z-[60] hidden flex-col bg-slate-950">
+    <div class="flex items-center justify-between gap-3 px-4 h-14 shrink-0 bg-slate-900 border-b border-slate-800">
+      <div class="min-w-0">
+        <div id="previewTitle" class="text-sm font-bold text-white truncate">Preview</div>
+        <div id="previewMeta" class="text-[11px] font-mono text-slate-400 truncate"></div>
+      </div>
+      <button id="previewCloseBtn" type="button" aria-label="Close preview" class="shrink-0 w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center text-lg leading-none">✕</button>
+    </div>
+    <div id="previewBody" class="flex-1 overflow-auto bg-checkerboard p-3 sm:p-6"></div>
+    <div class="shrink-0 p-3 bg-slate-900 border-t border-slate-800 flex gap-3">
+      <button id="previewDoneBtn" type="button" class="flex-1 py-3 rounded-xl font-bold text-sm text-slate-200 bg-slate-800 hover:bg-slate-700 transition-colors">Close</button>
+      <button id="previewDownloadBtn" type="button" class="flex-1 py-3 rounded-xl font-bold text-sm text-white bg-indigo-600 hover:bg-indigo-700 transition-colors">Download</button>
+    </div>
+  </div>
 
   <!-- TOAST NOTIFICATION -->
   <div id="toastNotification" class="fixed bottom-5 right-5 z-50 hidden px-4 py-3 rounded-2xl bg-slate-900 dark:bg-indigo-600 text-white text-xs font-semibold shadow-xl flex items-center gap-2">
@@ -1026,14 +1050,14 @@
         var currentVal = parseFloat(targetKbInput.value);
         imageState.unit = unit;
         if (unit === 'MB') {
-          imgUnitMbBtn.className = 'px-4 py-2 rounded-lg text-sm font-mono font-extrabold bg-indigo-600 text-white shadow-sm transition-all';
-          imgUnitKbBtn.className = 'px-4 py-2 rounded-lg text-sm font-mono font-extrabold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all';
+          imgUnitMbBtn.className = 'px-3.5 py-2 rounded-lg text-sm font-mono font-extrabold bg-indigo-600 text-white shadow-sm transition-all';
+          imgUnitKbBtn.className = 'px-3.5 py-2 rounded-lg text-sm font-mono font-extrabold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all';
           if (!isNaN(currentVal) && currentVal >= 10) {
             targetKbInput.value = +(currentVal / 1024).toFixed(2);
           }
         } else {
-          imgUnitKbBtn.className = 'px-4 py-2 rounded-lg text-sm font-mono font-extrabold bg-indigo-600 text-white shadow-sm transition-all';
-          imgUnitMbBtn.className = 'px-4 py-2 rounded-lg text-sm font-mono font-extrabold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all';
+          imgUnitKbBtn.className = 'px-3.5 py-2 rounded-lg text-sm font-mono font-extrabold bg-indigo-600 text-white shadow-sm transition-all';
+          imgUnitMbBtn.className = 'px-3.5 py-2 rounded-lg text-sm font-mono font-extrabold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all';
           if (!isNaN(currentVal) && currentVal <= 10) {
             targetKbInput.value = Math.round(currentVal * 1024);
           }
@@ -1456,14 +1480,14 @@
         var currentVal = parseFloat(pdfTargetKbInput.value);
         pdfState.unit = unit;
         if (unit === 'MB') {
-          pdfUnitMbBtn.className = 'px-4 py-2 rounded-lg text-sm font-mono font-extrabold bg-violet-600 text-white shadow-sm transition-all';
-          pdfUnitKbBtn.className = 'px-4 py-2 rounded-lg text-sm font-mono font-extrabold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all';
+          pdfUnitMbBtn.className = 'px-3.5 py-2 rounded-lg text-sm font-mono font-extrabold bg-violet-600 text-white shadow-sm transition-all';
+          pdfUnitKbBtn.className = 'px-3.5 py-2 rounded-lg text-sm font-mono font-extrabold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all';
           if (!isNaN(currentVal) && currentVal >= 10) {
             pdfTargetKbInput.value = +(currentVal / 1024).toFixed(2);
           }
         } else {
-          pdfUnitKbBtn.className = 'px-4 py-2 rounded-lg text-sm font-mono font-extrabold bg-violet-600 text-white shadow-sm transition-all';
-          pdfUnitMbBtn.className = 'px-4 py-2 rounded-lg text-sm font-mono font-extrabold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all';
+          pdfUnitKbBtn.className = 'px-3.5 py-2 rounded-lg text-sm font-mono font-extrabold bg-violet-600 text-white shadow-sm transition-all';
+          pdfUnitMbBtn.className = 'px-3.5 py-2 rounded-lg text-sm font-mono font-extrabold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all';
           if (!isNaN(currentVal) && currentVal <= 10) {
             pdfTargetKbInput.value = Math.round(currentVal * 1024);
           }
@@ -1621,70 +1645,94 @@
             var pdfDoc = await loadingTask.promise;
             var numPages = pdfDoc.numPages;
 
-            var targetBytesPerPage = Math.floor((targetKBVal * 1024 * 0.90) / numPages);
+            var targetTotalBytes = Math.floor(targetKBVal * 1024);
             var JsPDFCtor = window.jspdf.jsPDF;
             var outPdf = null;
+            var pageCache = [];
+            var finalPdfBlob = null;
+            // PDF structure adds its own bytes on top of the page images, so start with an
+            // estimate and tighten it after measuring the real file (up to 5 tries).
+            var overheadGuess = 2500 + 600 * numPages;
 
-            for (var pageNum = 1; pageNum <= numPages; pageNum++) {
-              var pct = Math.round(((pageNum - 1) / numPages) * 100);
-              pdfProgressLabel.textContent = 'Compressing Page ' + pageNum + ' of ' + numPages + '...';
-              pdfProgressPercent.textContent = pct + '%';
-              pdfProgressBar.style.width = Math.max(15, pct) + '%';
+            for (var attempt = 0; attempt < 5; attempt++) {
+              var targetBytesPerPage = Math.max(300, Math.floor(((targetTotalBytes - overheadGuess) * 0.97) / numPages));
+              pdfPageThumbs.innerHTML = '';
+              outPdf = null;
 
-              await new Promise(function (r) { setTimeout(r, 90); });
+              for (var pageNum = 1; pageNum <= numPages; pageNum++) {
+                var pct = Math.round(((pageNum - 1) / numPages) * 100);
+                pdfProgressLabel.textContent = (attempt === 0 ? 'Compressing Page ' : 'Fine-tuning size, page ') + pageNum + ' of ' + numPages + '...';
+                pdfProgressPercent.textContent = pct + '%';
+                pdfProgressBar.style.width = Math.max(15, pct) + '%';
 
-              var page = await pdfDoc.getPage(pageNum);
-              var unscaledViewport = page.getViewport({ scale: 1.0 });
-              var orientation = unscaledViewport.width > unscaledViewport.height ? 'landscape' : 'portrait';
-              var viewport = page.getViewport({ scale: 1.4 });
+                await new Promise(function (r) { setTimeout(r, 90); });
 
-              var pageCanvas = document.createElement('canvas');
-              pageCanvas.width = Math.round(viewport.width);
-              pageCanvas.height = Math.round(viewport.height);
-              var pageCtx = pageCanvas.getContext('2d');
-              pageCtx.fillStyle = '#FFFFFF';
-              pageCtx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+                if (!pageCache[pageNum - 1]) {
+                  var page = await pdfDoc.getPage(pageNum);
+                  var unscaledViewport = page.getViewport({ scale: 1.0 });
+                  var viewport = page.getViewport({ scale: 1.4 });
 
-              await page.render({ canvasContext: pageCtx, viewport: viewport }).promise;
+                  var pageCanvas = document.createElement('canvas');
+                  pageCanvas.width = Math.round(viewport.width);
+                  pageCanvas.height = Math.round(viewport.height);
+                  var pageCtx = pageCanvas.getContext('2d');
+                  pageCtx.fillStyle = '#FFFFFF';
+                  pageCtx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
 
-              var pageSearchResult = await compressCanvasToTargetBytes(
-                pageCanvas,
-                pageCanvas.width,
-                pageCanvas.height,
-                targetBytesPerPage
-              );
-              var compressedPageBlob = pageSearchResult.blob;
-              var pageJpegDataUrl = await blobToDataUrl(compressedPageBlob);
+                  await page.render({ canvasContext: pageCtx, viewport: viewport }).promise;
 
-              var pageWidthPt = unscaledViewport.width;
-              var pageHeightPt = unscaledViewport.height;
+                  pageCache[pageNum - 1] = {
+                    canvas: pageCanvas,
+                    widthPt: unscaledViewport.width,
+                    heightPt: unscaledViewport.height
+                  };
+                }
 
-              if (pageNum === 1) {
-                outPdf = new JsPDFCtor({
-                  orientation: orientation,
-                  unit: 'pt',
-                  format: [pageWidthPt, pageHeightPt],
-                  compress: true
-                });
-              } else {
-                outPdf.addPage([pageWidthPt, pageHeightPt], orientation);
+                var cached = pageCache[pageNum - 1];
+                var pageWidthPt = cached.widthPt;
+                var pageHeightPt = cached.heightPt;
+                var orientation = pageWidthPt > pageHeightPt ? 'landscape' : 'portrait';
+
+                var pageSearchResult = await compressCanvasToTargetBytes(
+                  cached.canvas,
+                  cached.canvas.width,
+                  cached.canvas.height,
+                  targetBytesPerPage
+                );
+                var compressedPageBlob = pageSearchResult.blob;
+                var pageJpegDataUrl = await blobToDataUrl(compressedPageBlob);
+
+                if (pageNum === 1) {
+                  outPdf = new JsPDFCtor({
+                    orientation: orientation,
+                    unit: 'pt',
+                    format: [pageWidthPt, pageHeightPt],
+                    compress: true
+                  });
+                } else {
+                  outPdf.addPage([pageWidthPt, pageHeightPt], orientation);
+                }
+
+                outPdf.addImage(pageJpegDataUrl, 'JPEG', 0, 0, pageWidthPt, pageHeightPt, undefined, 'FAST');
+
+                var thumbCard = document.createElement('div');
+                thumbCard.className = 'shrink-0 w-28 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-1.5 shadow-sm text-center';
+                thumbCard.innerHTML =
+                  '<img src="' + pageJpegDataUrl + '" alt="Page ' + pageNum + '" class="w-full h-32 object-contain rounded mb-1" />' +
+                  '<div class="text-[10px] font-mono font-bold text-slate-600 dark:text-slate-300">Page ' + pageNum + '</div>';
+                pdfPageThumbs.appendChild(thumbCard);
               }
 
-              outPdf.addImage(pageJpegDataUrl, 'JPEG', 0, 0, pageWidthPt, pageHeightPt, undefined, 'FAST');
-
-              var thumbCard = document.createElement('div');
-              thumbCard.className = 'shrink-0 w-28 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-1.5 shadow-sm text-center';
-              thumbCard.innerHTML =
-                '<img src="' + pageJpegDataUrl + '" alt="Page ' + pageNum + '" class="w-full h-32 object-contain rounded mb-1" />' +
-                '<div class="text-[10px] font-mono font-bold text-slate-600 dark:text-slate-300">Page ' + pageNum + '</div>';
-              pdfPageThumbs.appendChild(thumbCard);
+              finalPdfBlob = new Blob([outPdf.output('arraybuffer')], { type: 'application/pdf' });
+              if (finalPdfBlob.size <= targetTotalBytes) break;
+              // Too big: raise the overhead estimate by the real excess and try again.
+              overheadGuess += (finalPdfBlob.size - targetTotalBytes) + 400;
             }
 
             pdfProgressBar.style.width = '100%';
             pdfProgressPercent.textContent = '100%';
             await new Promise(function (r) { setTimeout(r, 150); });
 
-            var finalPdfBlob = new Blob([outPdf.output('arraybuffer')], { type: 'application/pdf' });
             var finalPdfDataUrl = await blobToDataUrl(finalPdfBlob);
 
             pdfState.compressedPdfBlob = finalPdfBlob;
@@ -1736,6 +1784,126 @@
           triggerReliableDownload(pdfState.compressedPdfBlob, pdfState.downloadFileName, downloadPdfBtn);
         } else {
           showToast('Saving ' + pdfState.downloadFileName + ' to your device...');
+        }
+      });
+
+      // ------------------------------------------------------------------
+      // PREVIEW: view the compressed image / PDF before downloading
+      // ------------------------------------------------------------------
+      var previewOverlay = document.getElementById('previewOverlay');
+      var previewBody = document.getElementById('previewBody');
+      var previewTitle = document.getElementById('previewTitle');
+      var previewMeta = document.getElementById('previewMeta');
+      var previewDownloadBtn = document.getElementById('previewDownloadBtn');
+      var previewObjectUrl = null;
+      var previewDownloadTarget = null;
+      var previewToken = 0;
+
+      function closePreview() {
+        previewToken++;
+        previewOverlay.classList.add('hidden');
+        previewOverlay.classList.remove('flex');
+        previewBody.innerHTML = '';
+        if (previewObjectUrl) { URL.revokeObjectURL(previewObjectUrl); previewObjectUrl = null; }
+        document.body.style.overflow = '';
+      }
+
+      function openPreview(title, meta, downloadAnchor, accentClass) {
+        previewToken++;
+        previewTitle.textContent = title;
+        previewMeta.textContent = meta;
+        previewBody.innerHTML = '';
+        previewDownloadTarget = downloadAnchor;
+        previewDownloadBtn.className = 'flex-1 py-3 rounded-xl font-bold text-sm text-white transition-colors ' + accentClass;
+        previewOverlay.classList.remove('hidden');
+        previewOverlay.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+        return previewToken;
+      }
+
+      document.getElementById('previewCloseBtn').addEventListener('click', closePreview);
+      document.getElementById('previewDoneBtn').addEventListener('click', closePreview);
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && !previewOverlay.classList.contains('hidden')) closePreview();
+      });
+      previewDownloadBtn.addEventListener('click', function () {
+        if (previewDownloadTarget) previewDownloadTarget.click();
+      });
+
+      document.getElementById('viewImageBtn').addEventListener('click', function () {
+        var blob = imageState.compressedBlob;
+        var src = null;
+        if (blob) { previewObjectUrl = URL.createObjectURL(blob); src = previewObjectUrl; }
+        else if (imageState.compressedDataUrl) { src = imageState.compressedDataUrl; }
+        if (!src) { showToast('Nothing to preview yet.'); return; }
+
+        var size = blob ? blob.size : imageState.originalBlobSize;
+        openPreview(imageState.downloadFileName || 'Compressed image',
+          formatSize(size) + ' • tap image to zoom', downloadImageBtn, 'bg-indigo-600 hover:bg-indigo-700');
+
+        var img = document.createElement('img');
+        img.src = src;
+        img.alt = 'Compressed image preview';
+        img.className = 'mx-auto max-w-full h-auto rounded shadow-lg cursor-zoom-in';
+        var zoomed = false;
+        img.addEventListener('click', function () {
+          zoomed = !zoomed;
+          img.className = zoomed
+            ? 'max-w-none h-auto rounded shadow-lg cursor-zoom-out'
+            : 'mx-auto max-w-full h-auto rounded shadow-lg cursor-zoom-in';
+        });
+        previewBody.appendChild(img);
+      });
+
+      document.getElementById('viewPdfBtn').addEventListener('click', async function () {
+        var blob = pdfState.compressedPdfBlob || pdfState.file;
+        if (!blob) { showToast('Nothing to preview yet.'); return; }
+
+        var token = openPreview(pdfState.downloadFileName || 'Compressed PDF',
+          formatSize(blob.size) + ' • scroll to view all pages', downloadPdfBtn, 'bg-violet-600 hover:bg-violet-700');
+
+        // Fallback: if the PDF engine is unavailable, open the file in a new tab.
+        if (!window.pdfjsLib) {
+          previewObjectUrl = URL.createObjectURL(blob);
+          window.open(previewObjectUrl, '_blank');
+          closePreview();
+          return;
+        }
+
+        var loading = document.createElement('div');
+        loading.className = 'text-center text-xs font-mono text-slate-400 py-10';
+        loading.textContent = 'Loading preview...';
+        previewBody.appendChild(loading);
+
+        try {
+          var buf = await blob.arrayBuffer();
+          var doc = await window.pdfjsLib.getDocument({ data: buf }).promise;
+          if (token !== previewToken) return;
+          previewBody.innerHTML = '';
+
+          var cssWidth = Math.max(240, previewBody.clientWidth - 24);
+          var dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+          for (var n = 1; n <= doc.numPages; n++) {
+            var pg = await doc.getPage(n);
+            if (token !== previewToken) return;
+            var base = pg.getViewport({ scale: 1 });
+            var scale = (cssWidth / base.width) * dpr;
+            var vp = pg.getViewport({ scale: scale });
+
+            var c = document.createElement('canvas');
+            c.width = Math.round(vp.width);
+            c.height = Math.round(vp.height);
+            c.style.width = cssWidth + 'px';
+            c.style.height = Math.round(c.height / dpr) + 'px';
+            c.className = 'mx-auto mb-3 rounded shadow-lg bg-white block';
+            previewBody.appendChild(c);
+
+            await pg.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+          }
+        } catch (err) {
+          if (token !== previewToken) return;
+          previewBody.innerHTML = '<div class="text-center text-sm text-slate-300 py-10">Could not show the preview. You can still download the file.</div>';
         }
       });
 
